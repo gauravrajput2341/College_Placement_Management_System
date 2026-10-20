@@ -1,14 +1,14 @@
 from datetime import date
 from flask import Flask, render_template, request, redirect, session, flash, abort, send_from_directory
 import os, uuid
+import os
 import mysql.connector, bcrypt
-import config
 from resume_utils import extract_text
 from matcher import match_drives, match_applicants
 from flask_wtf import CSRFProtect
 
 app = Flask(__name__)
-app.secret_key = config.SECRET_KEY
+app.secret_key = os.getenv("SECRET_KEY")
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 csrf = CSRFProtect(app)
 
@@ -29,7 +29,8 @@ DEPARTMENTS = ["CSE", "CSE-AIML", "IT", "ECE", "EE", "ME", "CE"]
 def get_db():
     return mysql.connector.connect(
         host="localhost", user="root",
-        password=config.DB_PASSWORD, database="cpms2")
+        password=os.getenv("DB_PASSWORD"), 
+        database="cpms2")
 
 def notify(cur, student_id, message):
     """Save one notification for a student (uses the caller's cursor, so it commits together)."""
