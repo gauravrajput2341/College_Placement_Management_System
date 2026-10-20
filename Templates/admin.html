@@ -1,0 +1,70 @@
+<h2>Admin Panel</h2>
+<a href="/logout">Logout</a>
+
+{% for m in get_flashed_messages() %}
+  <p style="color: blue;"><b>{{ m }}</b></p>
+{% endfor %}
+
+<h3>Placement Summary</h3>
+<table border="1" cellpadding="8">
+  <tr>
+    <th>Total Students</th><th>Placed</th><th>Unplaced</th><th>Placement %</th>
+    <th>Average Package (LPA)</th><th>Highest Package (LPA)</th>
+  </tr>
+  <tr>
+    <td>{{ stats.total }}</td><td>{{ stats.placed }}</td><td>{{ stats.unplaced }}</td>
+    <td>{{ stats.percent }}%</td><td>{{ stats.avg_pkg }}</td><td>{{ stats.max_pkg }}</td>
+  </tr>
+</table>
+
+<h3>Department-wise</h3>
+<table border="1" cellpadding="6">
+  <tr><th>Department</th><th>Students</th><th>Placed</th><th>Placement %</th></tr>
+  {% for d in dept %}
+  <tr>
+    <td>{{ d.department }}</td><td>{{ d.total }}</td><td>{{ d.placed }}</td>
+    <td>{{ ((d.placed / d.total) * 100) | round(1) }}%</td>
+  </tr>
+  {% else %}
+  <tr><td colspan="4">No students yet.</td></tr>
+  {% endfor %}
+</table>
+
+<h3>Company-wise Selections</h3>
+<table border="1" cellpadding="6">
+  <tr><th>Company</th><th>Students Selected</th><th>Average Package (LPA)</th></tr>
+  {% for c in companies %}
+  <tr><td>{{ c.name }}</td><td>{{ c.selected }}</td><td>{{ c.avg_pkg }}</td></tr>
+  {% else %}
+  <tr><td colspan="3">No selections yet.</td></tr>
+  {% endfor %}
+</table>
+
+<h3>Pending Drives (need approval)</h3>
+<table border="1" cellpadding="6">
+  <tr><th>Company</th><th>Role</th><th>Package</th><th>Min CGPA</th><th>Drive Date</th><th>Deadline</th><th></th></tr>
+  {% for d in pending %}
+  <tr>
+    <td>{{ d.company }}</td><td>{{ d.job_role }}</td><td>{{ d.package_lpa }}</td>
+    <td>{{ d.min_cgpa }}</td><td>{{ d.drive_date }}</td><td>{{ d.deadline }}</td>
+    <td><form method="post" action="/admin/approve/{{ d.drive_id }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+<button>Approve</button></form></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="7">No pending drives.</td></tr>
+  {% endfor %}
+</table>
+
+<h3>Approved Drives</h3>
+<table border="1" cellpadding="6">
+  <tr><th>Company</th><th>Role</th><th>Package</th><th>Min CGPA</th><th>Drive Date</th><th>Applicants</th></tr>
+  {% for d in approved %}
+  <tr>
+    <td>{{ d.company }}</td><td>{{ d.job_role }}</td><td>{{ d.package_lpa }}</td>
+    <td>{{ d.min_cgpa }}</td><td>{{ d.drive_date }}</td>
+    <td><a href="/admin/drive/{{ d.drive_id }}">{{ d.applicants }} - view</a></td>
+  </tr>
+  {% else %}
+  <tr><td colspan="6">No approved drives.</td></tr>
+  {% endfor %}
+</table>

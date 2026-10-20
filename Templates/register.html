@@ -1,0 +1,16 @@
+<h2>Student Register</h2>
+<p>{{ msg }}</p>
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input name="name" placeholder="Name" required><br><br>
+  <input name="email" type="email" placeholder="Email" required><br><br>
+  <input name="password" type="password" placeholder="Password" required><br><br>
+  <select name="department" required>
+    <option value="">-- Select department --</option>
+    {% for dep in departments %}
+      <option value="{{ dep }}">{{ dep }}</option>
+    {% endfor %}
+  </select><br><br>
+  <input name="cgpa" type="number" step="0.01" min="0" max="10" placeholder="CGPA" required><br><br>
+  <button>Register</button>
+</form>

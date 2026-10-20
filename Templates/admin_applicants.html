@@ -1,0 +1,65 @@
+<h2>Applicants: {{ drive.job_role }} ({{ drive.company }})</h2>
+<a href="/admin">Back to Admin Panel</a> | <a href="/logout">Logout</a>
+
+{% for m in get_flashed_messages() %}
+  <p style="color: blue;"><b>{{ m }}</b></p>
+{% endfor %}
+
+<table border="1" cellpadding="6">
+  <tr><th>Name</th><th>Email</th><th>Department</th><th>CGPA</th><th>Resume</th><th>Match</th><th>Status</th><th>Action</th><th>Final Result</th></tr>
+  {% for a in apps %}
+  <tr>
+    <td>{{ a.name }}</td><td>{{ a.email }}</td><td>{{ a.department }}</td>
+    <td>{{ a.cgpa }}</td>
+    <td>
+      {% if a.resume_file %}
+        <a href="/resume/{{ a.application_id }}" target="_blank">View resume</a>
+      {% else %}
+        Not uploaded
+      {% endif %}
+    </td>
+    <td>
+      {% if not drive.required_skills %}
+        -
+      {% elif not a.match.has_resume %}
+        No resume text
+      {% else %}
+        <b>{{ a.match.skill_match }}%</b> skill match<br>
+        <small>
+          Matched: {{ a.match.matched|join(', ') or '-' }}<br>
+          Missing: {{ a.match.missing|join(', ') or '-' }}<br>
+          Text similarity: {{ a.match.similarity }}%
+        </small>
+      {% endif %}
+    </td>
+    <td><b>{{ a.status }}</b></td>
+    <td>
+      {% if a.outcome %}-
+      {% else %}
+      <form method="post" action="/admin/status/{{ a.application_id }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="status" value="shortlisted"><button>Shortlist</button>
+      </form>
+      <form method="post" action="/admin/status/{{ a.application_id }}" style="display:inline;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="status" value="rejected"><button>Reject</button>
+      </form>
+      {% endif %}
+    </td>
+    <td>
+      {% if a.outcome == 'selected' %}<b>Selected ({{ a.offered_package }} LPA)</b>
+      {% elif a.outcome == 'not_selected' %}<b>Not selected</b>
+      {% elif a.status == 'shortlisted' %}
+      <form method="post" action="/admin/result/{{ a.application_id }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        Package: <input name="package" type="number" step="0.1" min="0" value="{{ drive.package_lpa }}" style="width:70px;">
+        <button name="outcome" value="selected">Selected</button>
+        <button name="outcome" value="not_selected">Not selected</button>
+      </form>
+      {% else %}-{% endif %}
+    </td>
+  </tr>
+  {% else %}
+  <tr><td colspan="9">No applicants yet.</td></tr>
+  {% endfor %}
+</table>

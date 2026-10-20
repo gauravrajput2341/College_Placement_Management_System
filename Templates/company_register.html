@@ -1,0 +1,10 @@
+<h2>Company Register</h2>
+<p>{{ msg }}</p>
+<form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input name="name" placeholder="Company name" required><br><br>
+  <input name="email" type="email" placeholder="Email" required><br><br>
+  <input name="password" type="password" placeholder="Password" required><br><br>
+  <button>Register</button>
+</form>
+<p><a href="/company/login">Already registered? Login</a></p>

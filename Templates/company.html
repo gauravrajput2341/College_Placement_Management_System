@@ -1,0 +1,46 @@
+<h2>Applicants: {{ drive.job_role }}</h2>
+<p><a href="/company">&larr; Back to my drives</a></p>
+
+{% with messages = get_flashed_messages() %}
+  {% for m in messages %}<p>{{ m }}</p>{% endfor %}
+{% endwith %}
+
+{% if apps %}
+<table border="1" cellpadding="6">
+  <tr>
+    <th>Name</th><th>Email</th><th>Department</th><th>CGPA</th><th>Status</th><th>Resume</th><th>Match</th>
+  </tr>
+  {% for a in apps %}
+  <tr>
+    <td>{{ a.name }}</td>
+    <td>{{ a.email }}</td>
+    <td>{{ a.department }}</td>
+    <td>{{ a.cgpa }}</td>
+    <td>{{ a.status }}</td>
+    <td>
+      {% if a.resume_file %}
+        <a href="/resume/{{ a.application_id }}" target="_blank">View resume</a>
+      {% else %}
+        Not uploaded
+      {% endif %}
+    </td>
+    <td>
+      {% if not drive.required_skills %}
+        -
+      {% elif not a.match.has_resume %}
+        No resume text
+      {% else %}
+        <b>{{ a.match.skill_match }}%</b> skill match<br>
+        <small>
+          Matched: {{ a.match.matched|join(', ') or '-' }}<br>
+          Missing: {{ a.match.missing|join(', ') or '-' }}<br>
+          Text similarity: {{ a.match.similarity }}%
+        </small>
+      {% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+</table>
+{% else %}
+<p>No applicants yet.</p>
+{% endif %}
