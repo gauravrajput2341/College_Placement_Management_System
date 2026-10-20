@@ -1,9 +1,123 @@
-<h2>Student Login</h2>
-<p>{{ msg }}</p>
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input name="email" type="email" placeholder="Email" required><br><br>
-  <input name="password" type="password" placeholder="Password" required><br><br>
-  <button>Login</button>
-</form>
-<p>New here? <a href="/register">Register</a></p>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Login | CPMS</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <main class="login-container">
+
+        <!-- Left branding section -->
+        <section class="welcome-panel">
+            <div class="brand">
+                <div class="brand-icon">C</div>
+                <span>CPMS</span>
+            </div>
+
+            <div class="welcome-content">
+                <span class="eyebrow">COLLEGE PLACEMENT MANAGEMENT</span>
+                <h1>Your career.<br> Your next chapter.</h1>
+                <p>
+                    Sign in to explore placement opportunities,
+                    manage applications and take the next step
+                    towards your professional future.
+                </p>
+
+                <div class="feature">
+                    <span class="feature-icon">↗</span>
+                    <div>
+                        <strong>Explore opportunities</strong>
+                        <small>Discover available placement drives</small>
+                    </div>
+                </div>
+
+                <div class="feature">
+                    <span class="feature-icon">✓</span>
+                    <div>
+                        <strong>Track applications</strong>
+                        <small>Keep up with your placement journey</small>
+                    </div>
+                </div>
+            </div>
+
+            <p class="panel-footer">Your future starts here.</p>
+        </section>
+
+        <!-- Right login section -->
+        <section class="form-panel">
+            <div class="mobile-brand">
+                <div class="brand-icon">C</div>
+                <span>CPMS</span>
+            </div>
+
+            <div class="form-content">
+                <div class="form-heading">
+                    <span class="eyebrow">STUDENT PORTAL</span>
+                    <h2>Welcome back!</h2>
+                    <p>Enter your credentials to access your account.</p>
+                </div>
+
+                {% if msg %}
+                    <div class="message" role="alert">
+                        {{ msg }}
+                    </div>
+                {% endif %}
+
+                <form method="post" class="login-form">
+                    <input type="hidden" name="csrf_token"
+                           value="{{ csrf_token() }}">
+
+                    <div class="form-group">
+                        <label for="email">Email address</label>
+                        <input
+                            id="email"
+                            name="email"
+                            type="email"
+                            placeholder="you@example.com"
+                            autocomplete="email"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input
+                            id="password"
+                            name="password"
+                            type="password"
+                            placeholder="Enter your password"
+                            autocomplete="current-password"
+                            required>
+                    </div>
+
+                    <button type="submit" class="login-button">
+                        Sign in to your account
+                        <span aria-hidden="true">→</span>
+                    </button>
+                </form>
+
+                <div class="register-prompt">
+                    New to CPMS?
+                    <a href="/register">Create a student account</a>
+                </div>
+
+                <div class="security-note">
+                    <span aria-hidden="true">●</span>
+                    Secure student sign-in
+                </div>
+            </div>
+
+            <footer class="form-footer">
+                College Placement Management System
+            </footer>
+        </section>
+
+    </main>
+
+</body>
+</html>
