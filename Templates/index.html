@@ -1,0 +1,324 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CPMS | Welcome</title>
+
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #eef2ff, #f8fafc);
+            color: #172554;
+        }
+
+        .welcome-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 22px 7%;
+            background: #ffffff;
+            box-shadow: 0 3px 15px rgba(15, 23, 42, .08);
+        }
+
+        .brand {
+            font-size: 25px;
+            font-weight: 800;
+            color: #4338ca;
+        }
+
+        .header-tag {
+            color: #64748b;
+            font-size: 14px;
+        }
+
+        .welcome-main {
+            max-width: 1100px;
+            margin: 65px auto;
+            padding: 0 24px;
+            text-align: center;
+        }
+
+        .welcome-main h1 {
+            font-size: clamp(32px, 5vw, 48px);
+            margin-bottom: 16px;
+            color: #172554;
+        }
+
+        .welcome-main > p {
+            color: #64748b;
+            font-size: 17px;
+            line-height: 1.7;
+            margin-bottom: 42px;
+        }
+
+        .role-cards {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 24px;
+            text-align: left;
+        }
+
+        .role-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            padding: 30px 25px;
+            box-shadow: 0 10px 30px rgba(15, 23, 42, .06);
+            transition: transform .2s, box-shadow .2s;
+        }
+
+        .role-card:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 18px 35px rgba(15, 23, 42, .12);
+        }
+
+        .role-icon {
+            width: 58px;
+            height: 58px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: #eef2ff;
+            font-size: 29px;
+            margin-bottom: 20px;
+        }
+
+        .role-card h2 {
+            margin: 0 0 12px;
+            font-size: 23px;
+        }
+
+        .role-card p {
+            color: #64748b;
+            line-height: 1.7;
+            min-height: 54px;
+        }
+
+        .role-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 24px;
+        }
+
+        .role-links a {
+            display: inline-block;
+            text-decoration: none;
+            text-align: center;
+            padding: 12px 18px;
+            border-radius: 9px;
+            font-weight: 700;
+            background: #4338ca;
+            color: white;
+        }
+
+        .role-links a.secondary {
+            background: #eef2ff;
+            color: #4338ca;
+        }
+
+        .role-links a:hover {
+            opacity: .85;
+        }
+
+        .welcome-footer {
+            text-align: center;
+            padding: 24px;
+            color: #64748b;
+            font-size: 13px;
+        }
+
+        @media (max-width: 800px) {
+            .role-cards {
+                grid-template-columns: 1fr;
+            }
+
+            .welcome-main {
+                margin-top: 38px;
+            }
+
+            .role-card p {
+                min-height: auto;
+            }
+        }
+
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #eef2ff, #f8fafc);
+}
+
+.welcome-header {
+    width: 100%;
+    box-sizing: border-box;
+    min-height: 78px;
+    padding: 18px 5%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #fff;
+    box-shadow: 0 3px 15px rgba(15, 23, 42, 0.08);
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    white-space: nowrap;
+    font-size: 25px;
+    font-weight: 800;
+    color: #4338ca;
+}
+
+.welcome-main {
+    width: min(1100px, 90%);
+    margin: 55px auto 35px;
+    padding: 0;
+    flex: 1;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.welcome-main h1 {
+    margin-top: 0;
+}
+
+.role-cards {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: stretch;
+    gap: 24px;
+}
+
+.role-card {
+    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.role-card p {
+    flex: 1;
+}
+
+.role-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.welcome-footer {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 20px;
+    text-align: center;
+}
+
+@media (max-width: 800px) {
+    .welcome-header {
+        padding: 16px 5%;
+    }
+
+    .header-tag {
+        max-width: 55%;
+        text-align: right;
+        line-height: 1.5;
+    }
+
+    .welcome-main {
+        margin: 35px auto;
+    }
+
+    .role-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .welcome-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .header-tag {
+        max-width: 100%;
+        text-align: left;
+    }
+
+    .welcome-main h1 {
+        font-size: 32px;
+    }
+}
+
+    </style>
+</head>
+
+<body>
+    <header class="welcome-header">
+        <div class="brand">🎓 CPMS</div>
+        <div class="header-tag">College Placement Management System</div>
+    </header>
+
+    <main class="welcome-main">
+        <h1>Welcome to CPMS</h1>
+        <p>
+            Your career journey starts here.
+            Choose your role to continue to the placement portal.
+        </p>
+
+        <section class="role-cards">
+            <article class="role-card">
+                <div class="role-icon">🎓</div>
+                <h2>Student</h2>
+                <p>
+                    Explore placement drives, apply for opportunities,
+                    and track your application status.
+                </p>
+                <div class="role-links">
+                    <a href="/login">Student Login</a>
+                    <a class="secondary" href="/register">Register</a>
+                </div>
+            </article>
+
+            <article class="role-card">
+                <div class="role-icon">🏢</div>
+                <h2>Company</h2>
+                <p>
+                    Connect with talented students and manage
+                    your campus recruitment opportunities.
+                </p>
+                <div class="role-links">
+                    <a href="/company/login">Company Login</a>
+                    <a class="secondary" href="/company/register">Register</a>
+                </div>
+            </article>
+
+            <article class="role-card">
+                <div class="role-icon">🛡️</div>
+                <h2>Administrator</h2>
+                <p>
+                    Manage placement drives, review applicants,
+                    and update recruitment results.
+                </p>
+                <div class="role-links">
+                    <a href="/admin/login">Admin Login</a>
+                </div>
+            </article>
+        </section>
+    </main>
+
+    <footer class="welcome-footer">
+        © CPMS — College Placement Management System
+    </footer>
+</body>
+</html>

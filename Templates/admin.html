@@ -1,70 +1,275 @@
-<h2>Admin Panel</h2>
-<a href="/logout">Logout</a>
 
-{% for m in get_flashed_messages() %}
-  <p style="color: blue;"><b>{{ m }}</b></p>
-{% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard | CPMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        body.admin-page{margin:0;background:#f2f5fc;color:#172b4d;font-family:Arial,sans-serif}
+        .admin-page *{box-sizing:border-box}
+        .admin-top{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:20px 4%;background:#fff;border-bottom:1px solid #e0e7f3}
+        .admin-brand{display:flex;align-items:center;gap:12px;font-size:23px;font-weight:700}
+        .admin-logo{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#3158df;color:#fff}
+        .admin-top a{color:#3158d9;text-decoration:none;font-weight:600}
+        .admin-logout{padding:12px 18px;border:1px solid #dce4f2;border-radius:10px}
+        .admin-shell{width:94%;max-width:1450px;margin:30px auto}
+        .admin-hero{padding:34px;border-radius:22px;color:#fff;background:linear-gradient(115deg,#1d347d,#3158d9,#5275ee);margin-bottom:25px}
+        .admin-hero small{letter-spacing:1.5px;font-weight:700}
+        .admin-hero h1{margin:12px 0;font-size:clamp(27px,3vw,36px)}
+        .admin-hero p{margin:0;line-height:1.7}
+        .admin-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-bottom:25px}
+        .admin-stat{background:#fff;border:1px solid #e0e7f3;border-radius:16px;padding:23px;box-shadow:0 6px 20px #1b31600a}
+        .admin-stat span{display:block;color:#71809a;font-size:14px}
+        .admin-stat strong{display:block;margin-top:12px;color:#2446a4;font-size:28px}
+        .admin-card{background:#fff;border:1px solid #e0e7f3;border-radius:17px;padding:25px;margin-bottom:24px;box-shadow:0 6px 20px #1b31600a}
+        .admin-card h2{margin:0 0 8px;font-size:21px}
+        .admin-card .subtext{margin:0 0 20px;color:#71809a;font-size:14px}
+        .admin-table-wrap{width:100%;overflow-x:auto;border:1px solid #e0e7f3;border-radius:12px}
+        .admin-table{width:100%;min-width:650px;border-collapse:collapse;background:#fff}
+        .admin-table th,.admin-table td{padding:15px 16px;border-bottom:1px solid #e9eef6;text-align:left;font-size:14px;vertical-align:middle}
+        .admin-table th{background:#f5f7fc;color:#405473;white-space:nowrap}
+        .admin-table tr:last-child td{border-bottom:0}
+        .admin-table a{color:#3158d9;font-weight:600;text-decoration:none}
+        .admin-table a:hover{text-decoration:underline}
+        .admin-btn{border:0;border-radius:8px;background:#3158d9;color:#fff;padding:10px 14px;font-weight:600;cursor:pointer}
+        .admin-btn:hover{background:#2446b8}
+        .admin-empty{text-align:center!important;padding:25px!important;color:#7a879d}
+        .admin-flash{padding:14px 18px;margin-bottom:20px;background:#e8f1ff;border:1px solid #cbd9ff;border-radius:10px;color:#2446a4}
+        .admin-pill{display:inline-block;padding:6px 10px;border-radius:20px;background:#e5f7ec;color:#147d46;font-size:12px;font-weight:700}
+        .admin-footer{text-align:center;padding:15px;color:#8290a7;font-size:13px}
+        @media(max-width:700px){.admin-stats{grid-template-columns:1fr}.admin-top{padding:16px 5%}.admin-shell{width:92%;margin:20px auto}.admin-card{padding:17px}.admin-hero{padding:25px}}
+        
+/* FIX: Admin dashboard full-width layout */
+body.admin-page {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+}
 
-<h3>Placement Summary</h3>
-<table border="1" cellpadding="8">
-  <tr>
-    <th>Total Students</th><th>Placed</th><th>Unplaced</th><th>Placement %</th>
-    <th>Average Package (LPA)</th><th>Highest Package (LPA)</th>
-  </tr>
-  <tr>
-    <td>{{ stats.total }}</td><td>{{ stats.placed }}</td><td>{{ stats.unplaced }}</td>
-    <td>{{ stats.percent }}%</td><td>{{ stats.avg_pkg }}</td><td>{{ stats.max_pkg }}</td>
-  </tr>
-</table>
+.admin-page .admin-top {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: 10;
+}
 
-<h3>Department-wise</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Department</th><th>Students</th><th>Placed</th><th>Placement %</th></tr>
-  {% for d in dept %}
-  <tr>
-    <td>{{ d.department }}</td><td>{{ d.total }}</td><td>{{ d.placed }}</td>
-    <td>{{ ((d.placed / d.total) * 100) | round(1) }}%</td>
-  </tr>
-  {% else %}
-  <tr><td colspan="4">No students yet.</td></tr>
-  {% endfor %}
-</table>
+.admin-page .admin-shell {
+    display: block !important;
+    position: relative !important;
+    width: 94% !important;
+    max-width: 1450px !important;
+    margin: 30px auto !important;
+    padding: 0 !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+}
 
-<h3>Company-wise Selections</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Company</th><th>Students Selected</th><th>Average Package (LPA)</th></tr>
-  {% for c in companies %}
-  <tr><td>{{ c.name }}</td><td>{{ c.selected }}</td><td>{{ c.avg_pkg }}</td></tr>
-  {% else %}
-  <tr><td colspan="3">No selections yet.</td></tr>
-  {% endfor %}
-</table>
+.admin-page .admin-hero,
+.admin-page .admin-stats,
+.admin-page .admin-card {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+}
 
-<h3>Pending Drives (need approval)</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Company</th><th>Role</th><th>Package</th><th>Min CGPA</th><th>Drive Date</th><th>Deadline</th><th></th></tr>
-  {% for d in pending %}
-  <tr>
-    <td>{{ d.company }}</td><td>{{ d.job_role }}</td><td>{{ d.package_lpa }}</td>
-    <td>{{ d.min_cgpa }}</td><td>{{ d.drive_date }}</td><td>{{ d.deadline }}</td>
-    <td><form method="post" action="/admin/approve/{{ d.drive_id }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<button>Approve</button></form></td>
-  </tr>
-  {% else %}
-  <tr><td colspan="7">No pending drives.</td></tr>
-  {% endfor %}
-</table>
+.admin-page .admin-hero {
+    width: 100% !important;
+}
 
-<h3>Approved Drives</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Company</th><th>Role</th><th>Package</th><th>Min CGPA</th><th>Drive Date</th><th>Applicants</th></tr>
-  {% for d in approved %}
-  <tr>
-    <td>{{ d.company }}</td><td>{{ d.job_role }}</td><td>{{ d.package_lpa }}</td>
-    <td>{{ d.min_cgpa }}</td><td>{{ d.drive_date }}</td>
-    <td><a href="/admin/drive/{{ d.drive_id }}">{{ d.applicants }} - view</a></td>
-  </tr>
-  {% else %}
-  <tr><td colspan="6">No approved drives.</td></tr>
-  {% endfor %}
-</table>
+.admin-page .admin-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 18px !important;
+    width: 100% !important;
+}
+
+.admin-page .admin-card {
+    width: 100% !important;
+    margin: 0 0 24px !important;
+}
+
+.admin-page .admin-table-wrap {
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+}
+
+.admin-page .admin-table {
+    width: 100% !important;
+}
+
+.admin-page .admin-footer {
+    position: static !important;
+    width: 100% !important;
+}
+
+@media (max-width: 700px) {
+    .admin-page .admin-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .admin-page .admin-shell {
+        width: 92% !important;
+        margin: 20px auto !important;
+    }
+}
+
+    </style>
+</head>
+<body class="admin-page">
+
+<header class="admin-top">
+    <div class="admin-brand">
+        <span class="admin-logo">C</span>
+        <span>CPMS<small style="display:block;font-size:11px;font-weight:400;color:#71809a;margin-top:4px">College Placement Portal</small></span>
+    </div>
+    <a class="admin-logout" href="/logout">Logout</a>
+</header>
+
+<main class="admin-shell">
+
+    <section class="admin-hero">
+        <small>ADMINISTRATION PORTAL</small>
+        <h1>Placement Management Dashboard</h1>
+        <p>Monitor placement outcomes, manage company drives and review recruitment activity.</p>
+    </section>
+
+    {% with messages = get_flashed_messages() %}
+        {% for m in messages %}
+            <div class="admin-flash" role="status">{{ m }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <section class="admin-stats">
+        <div class="admin-stat">
+            <span>Total Students</span>
+            <strong>{{ stats.total }}</strong>
+        </div>
+        <div class="admin-stat">
+            <span>Students Placed</span>
+            <strong>{{ stats.placed }}</strong>
+        </div>
+        <div class="admin-stat">
+            <span>Placement Rate</span>
+            <strong>{{ stats.percent }}%</strong>
+        </div>
+        <div class="admin-stat">
+            <span>Students Unplaced</span>
+            <strong>{{ stats.unplaced }}</strong>
+        </div>
+        <div class="admin-stat">
+            <span>Average Package</span>
+            <strong>{{ stats.avg_pkg }} LPA</strong>
+        </div>
+        <div class="admin-stat">
+            <span>Highest Package</span>
+            <strong>{{ stats.max_pkg }} LPA</strong>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <h2>Department-wise Placement Statistics</h2>
+        <p class="subtext">Compare student placement outcomes across departments.</p>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Department</th><th>Total Students</th><th>Placed</th><th>Placement Rate</th></tr></thead>
+                <tbody>
+                {% for d in dept %}
+                    <tr>
+                        <td><strong>{{ d.department }}</strong></td>
+                        <td>{{ d.total }}</td>
+                        <td>{{ d.placed }}</td>
+                        <td><span class="admin-pill">{{ ((d.placed / d.total) * 100) | round(1) if d.total else 0 }}%</span></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" class="admin-empty">No students yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <h2>Company-wise Selections</h2>
+        <p class="subtext">Review selection counts and average offered packages.</p>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Company</th><th>Students Selected</th><th>Average Package</th></tr></thead>
+                <tbody>
+                {% for c in companies %}
+                    <tr><td><strong>{{ c.name }}</strong></td><td>{{ c.selected }}</td><td>{{ c.avg_pkg }} LPA</td></tr>
+                {% else %}
+                    <tr><td colspan="3" class="admin-empty">No selections yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <h2>Pending Placement Drives</h2>
+        <p class="subtext">Review drives awaiting administrator approval.</p>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Company</th><th>Role</th><th>Package</th><th>Min CGPA</th><th>Drive Date</th><th>Deadline</th><th>Action</th></tr></thead>
+                <tbody>
+                {% for d in pending %}
+                    <tr>
+                        <td><strong>{{ d.company }}</strong></td><td>{{ d.job_role }}</td>
+                        <td>{{ d.package_lpa }} LPA</td><td>{{ d.min_cgpa }}</td>
+                        <td>{{ d.drive_date }}</td><td>{{ d.deadline }}</td>
+                        <td>
+                            <form method="post" action="/admin/approve/{{ d.drive_id }}">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button class="admin-btn" type="submit">Approve</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="7" class="admin-empty">No pending drives.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="admin-card">
+        <h2>Approved Placement Drives</h2>
+        <p class="subtext">Open a drive to review its student applications.</p>
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead><tr><th>Company</th><th>Role</th><th>Package</th><th>Min CGPA</th><th>Drive Date</th><th>Applicants</th></tr></thead>
+                <tbody>
+                {% for d in approved %}
+                    <tr>
+                        <td><strong>{{ d.company }}</strong></td><td>{{ d.job_role }}</td>
+                        <td>{{ d.package_lpa }} LPA</td><td>{{ d.min_cgpa }}</td>
+                        <td>{{ d.drive_date }}</td>
+                        <td><a href="/admin/drive/{{ d.drive_id }}">{{ d.applicants }} · View applicants →</a></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="6" class="admin-empty">No approved drives.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="admin-footer">CPMS · College Placement Management System</footer>
+</main>
+</body>
+</html>

@@ -1,9 +1,129 @@
-<h2>Company Login</h2>
-<p>{{ msg }}</p>
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input name="email" type="email" placeholder="Email" required><br><br>
-  <input name="password" type="password" placeholder="Password" required><br><br>
-  <button>Login</button>
-</form>
-<p><a href="/company/register">New company? Register</a></p>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Login | CPMS</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+<main class="login-container">
+
+    <!-- Left Welcome Panel -->
+    <section class="welcome-panel">
+        <div class="brand">
+            <span class="brand-icon">C</span>
+            <span>CPMS</span>
+        </div>
+
+        <div class="welcome-content">
+            <span class="eyebrow">COMPANY PORTAL</span>
+
+            <h1>Your talent.<br>Your next chapter.</h1>
+
+            <p>
+                Sign in to manage placement drives, review student
+                applications and connect with promising campus talent.
+            </p>
+
+            <div class="feature">
+                <span class="feature-icon">↗</span>
+                <div>
+                    <strong>Manage placement drives</strong>
+                    <small>Create and manage job opportunities.</small>
+                </div>
+            </div>
+
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <div>
+                    <strong>Review applications</strong>
+                    <small>Explore applicants for your job roles.</small>
+                </div>
+            </div>
+        </div>
+
+        <p class="panel-footer">
+            Your next great hire starts here.
+        </p>
+    </section>
+
+    <!-- Right Login Form -->
+    <section class="form-panel">
+
+        <div class="mobile-brand">
+            <span class="brand-icon">C</span>
+            <span>CPMS</span>
+        </div>
+
+        <div class="form-content">
+            <div class="form-heading">
+                <span class="eyebrow">EMPLOYER PORTAL</span>
+                <h2>Welcome back!</h2>
+                <p>Enter your company credentials to continue.</p>
+            </div>
+
+            {% if msg %}
+                <div class="message" role="alert">
+                    {{ msg }}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="email">Company email address</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="name@company.com"
+                        autocomplete="username"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="Enter your password"
+                        autocomplete="current-password"
+                        required>
+                </div>
+
+                <button class="login-button" type="submit">
+                    Sign in to your account <span>→</span>
+                </button>
+            </form>
+
+            <div class="register-prompt">
+                New to CPMS?
+                <a href="/company/register">
+                    Register your company
+                </a>
+
+                <a href="/" style="margin-top:14px">
+                    ← Back to home
+                </a>
+            </div>
+
+            <div class="security-note">
+                <span>●</span> Secure company sign-in
+            </div>
+        </div>
+
+        <div class="form-footer">
+            College Placement Management System
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

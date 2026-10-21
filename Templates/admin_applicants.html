@@ -1,65 +1,370 @@
-<h2>Applicants: {{ drive.job_role }} ({{ drive.company }})</h2>
-<a href="/admin">Back to Admin Panel</a> | <a href="/logout">Logout</a>
 
-{% for m in get_flashed_messages() %}
-  <p style="color: blue;"><b>{{ m }}</b></p>
-{% endfor %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<table border="1" cellpadding="6">
-  <tr><th>Name</th><th>Email</th><th>Department</th><th>CGPA</th><th>Resume</th><th>Match</th><th>Status</th><th>Action</th><th>Final Result</th></tr>
-  {% for a in apps %}
-  <tr>
-    <td>{{ a.name }}</td><td>{{ a.email }}</td><td>{{ a.department }}</td>
-    <td>{{ a.cgpa }}</td>
-    <td>
-      {% if a.resume_file %}
-        <a href="/resume/{{ a.application_id }}" target="_blank">View resume</a>
-      {% else %}
-        Not uploaded
-      {% endif %}
-    </td>
-    <td>
-      {% if not drive.required_skills %}
-        -
-      {% elif not a.match.has_resume %}
-        No resume text
-      {% else %}
-        <b>{{ a.match.skill_match }}%</b> skill match<br>
-        <small>
-          Matched: {{ a.match.matched|join(', ') or '-' }}<br>
-          Missing: {{ a.match.missing|join(', ') or '-' }}<br>
-          Text similarity: {{ a.match.similarity }}%
-        </small>
-      {% endif %}
-    </td>
-    <td><b>{{ a.status }}</b></td>
-    <td>
-      {% if a.outcome %}-
-      {% else %}
-      <form method="post" action="/admin/status/{{ a.application_id }}" style="display:inline;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="status" value="shortlisted"><button>Shortlist</button>
-      </form>
-      <form method="post" action="/admin/status/{{ a.application_id }}" style="display:inline;">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        <input type="hidden" name="status" value="rejected"><button>Reject</button>
-      </form>
-      {% endif %}
-    </td>
-    <td>
-      {% if a.outcome == 'selected' %}<b>Selected ({{ a.offered_package }} LPA)</b>
-      {% elif a.outcome == 'not_selected' %}<b>Not selected</b>
-      {% elif a.status == 'shortlisted' %}
-      <form method="post" action="/admin/result/{{ a.application_id }}">
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-        Package: <input name="package" type="number" step="0.1" min="0" value="{{ drive.package_lpa }}" style="width:70px;">
-        <button name="outcome" value="selected">Selected</button>
-        <button name="outcome" value="not_selected">Not selected</button>
-      </form>
-      {% else %}-{% endif %}
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="9">No applicants yet.</td></tr>
-  {% endfor %}
-</table>
+    <title>Applicant Review | CPMS</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        body.admin-page {
+            margin: 0;
+            background: #f2f5fc;
+            color: #172b4d;
+            font-family: Arial, sans-serif;
+        }
+
+        .admin-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 18px;
+            padding: 18px 4%;
+            background: #fff;
+            border-bottom: 1px solid #e0e7f3;
+        }
+
+        .admin-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 22px;
+            font-weight: 700;
+        }
+
+        .admin-logo {
+            display: grid;
+            place-items: center;
+            width: 46px;
+            height: 46px;
+            border-radius: 13px;
+            background: #3158df;
+            color: #fff;
+        }
+
+        .admin-top a {
+            color: #3158d9;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .admin-link {
+            display: inline-block;
+            padding: 11px 16px;
+            border: 1px solid #dce4f2;
+            border-radius: 10px;
+        }
+
+        .admin-shell {
+            width: 94%;
+            max-width: 1450px;
+            margin: 30px auto;
+        }
+
+        .admin-hero {
+            padding: 30px;
+            margin-bottom: 24px;
+            border-radius: 20px;
+            color: #fff;
+            background: linear-gradient(
+                115deg,
+                #1d347d,
+                #3158d9,
+                #5275ee
+            );
+        }
+
+        .admin-hero small {
+            font-weight: 700;
+            letter-spacing: 1.5px;
+        }
+
+        .admin-hero h1 {
+            margin: 12px 0;
+            font-size: clamp(25px, 3vw, 34px);
+        }
+
+        .admin-hero p {
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        .admin-card {
+            padding: 25px;
+            margin-bottom: 24px;
+            border: 1px solid #e0e7f3;
+            border-radius: 17px;
+            background: #fff;
+            box-shadow: 0 6px 20px rgba(27, 49, 96, 0.04);
+        }
+
+        .admin-card h2 {
+            margin: 0 0 8px;
+            font-size: 21px;
+        }
+
+        .admin-muted {
+            margin: 0 0 22px;
+            color: #71809a;
+            font-size: 14px;
+        }
+
+        .admin-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #e0e7f3;
+            border-radius: 12px;
+        }
+
+        .admin-table {
+            width: 100%;
+            min-width: 850px;
+            border-collapse: collapse;
+        }
+
+        .admin-table th,
+        .admin-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #e9eef6;
+            font-size: 14px;
+            vertical-align: middle;
+        }
+
+        .admin-table th {
+            background: #f5f7fc;
+            color: #405473;
+            white-space: nowrap;
+        }
+
+        .admin-table tr:last-child td {
+            border-bottom: 0;
+        }
+
+        .admin-btn {
+            display: inline-block;
+            padding: 10px 14px;
+            border: 0;
+            border-radius: 8px;
+            background: #3158d9;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .admin-btn:hover {
+            background: #2446b8;
+        }
+
+        .admin-btn.reject {
+            background: #fff0f0;
+            color: #c03939;
+            border: 1px solid #f2d1d1;
+        }
+
+        .admin-btn.reject:hover {
+            background: #ffe1e1;
+        }
+
+        .admin-actions {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .admin-actions form {
+            display: inline-flex;
+            margin: 0;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 7px;
+            background: #eef2ff;
+            color: #3158d9;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-badge.rejected {
+            background: #fff0f0;
+            color: #c03939;
+        }
+
+        .admin-empty {
+            padding: 30px !important;
+            text-align: center !important;
+            color: #71809a;
+        }
+
+        .admin-footer {
+            padding: 20px;
+            text-align: center;
+            color: #8290a7;
+            font-size: 13px;
+        }
+
+        @media (max-width: 700px) {
+            .admin-top {
+                padding: 14px 4%;
+                flex-wrap: wrap;
+            }
+
+            .admin-shell {
+                width: 92%;
+                margin: 20px auto;
+            }
+
+            .admin-card {
+                padding: 17px;
+            }
+
+            .admin-hero {
+                padding: 23px;
+            }
+
+            .admin-link {
+                padding: 9px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body class="admin-page">
+
+<header class="admin-top">
+    <div class="admin-brand">
+        <span class="admin-logo">C</span>
+        <span>
+            CPMS
+            <small style="display:block;font-size:11px;font-weight:400;color:#71809a;margin-top:4px">
+                College Placement Portal
+            </small>
+        </span>
+    </div>
+
+    <nav style="display:flex;gap:12px;align-items:center">
+        <a class="admin-link" href="/admin">
+           Dashboard </a>
+        </a>
+        <a class="admin-link" href="{{ url_for('logout') }}">
+            Logout
+        </a>
+    </nav>
+</header>
+
+<main class="admin-shell">
+
+    <section class="admin-hero">
+        <small>APPLICATION MANAGEMENT</small>
+        <h1>Applicant Review</h1>
+        <p>Review candidates and manage recruitment decisions.</p>
+    </section>
+
+    <section class="admin-card">
+        <h2>Student Applications</h2>
+        <p class="admin-muted">
+            Review application details and available actions.
+        </p>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Student</th>
+                        <th>Email</th>
+                        <th>Department</th>
+                        <th>CGPA</th>
+                        <th>Job Role</th>
+                        <th>Application Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for a in apps %}
+                    <tr>
+                        <td><strong>{{ a.name }}</strong></td>
+                        <td>{{ a.email }}</td>
+                        <td>{{ a.department }}</td>
+                        <td>{{ a.cgpa }}</td>
+                        <td>{{ a.job_role }}</td>
+                        <td>
+                            {% if a.status == 'shortlisted' %}
+                                <span class="status-badge">Shortlisted</span>
+                            {% elif a.status == 'rejected' %}
+                                <span class="status-badge rejected">Rejected</span>
+                            {% else %}
+                                <span class="status-badge">{{ a.status }}</span>
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <div class="admin-actions">
+                                {% if a.status == 'applied' %}
+                                    <form method="POST"
+                                          action="{{ url_for('admin_status', application_id=a.application_id) }}">
+                                        <input type="hidden"
+                                               name="csrf_token"
+                                               value="{{ csrf_token() }}">
+                                        <input type="hidden"
+                                               name="status"
+                                               value="shortlisted">
+                                        <button type="submit" class="admin-btn">
+                                            Shortlist
+                                        </button>
+                                    </form>
+
+                                    <form method="POST"
+                                          action="{{ url_for('admin_status', application_id=a.application_id) }}">
+                                        <input type="hidden"
+                                               name="csrf_token"
+                                               value="{{ csrf_token() }}">
+                                        <input type="hidden"
+                                               name="status"
+                                               value="rejected">
+                                        <button type="submit" class="admin-btn reject">
+                                            Reject
+                                        </button>
+                                    </form>
+
+                                {% elif a.status == 'shortlisted' %}
+                                    <span class="status-badge">Already shortlisted</span>
+
+                                {% elif a.status == 'rejected' %}
+                                    <span class="status-badge rejected">Already rejected</span>
+
+                                {% else %}
+                                    <span>—</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="admin-empty">
+                            No applicants found for this placement drive.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="admin-footer">
+        CPMS · College Placement Management System
+    </footer>
+
+</main>
+
+</body>
+</html>

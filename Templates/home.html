@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home | CPMS</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="app-page">
+  <header class="app-topbar">
+    <a class="app-brand" href="/"><span class="app-brand-mark">C</span><span>CPMS <small style="display:block;color:#8490a5;font-size:10px;font-weight:500">Placement Portal</small></span></a>
+    <nav class="app-nav"><a href="/login">Student</a><a href="/company/login">Company</a><a href="/admin/login">Admin</a></nav>
+  </header>
+  <main class="app-shell">
+    <section class=""><section class="hero-card">
+  <span class="eyebrow">COLLEGE PLACEMENT MANAGEMENT SYSTEM</span>
+  <h1>Connect talent with opportunity.</h1>
+  <p>A central portal for students to explore placement drives, companies to discover candidates, and administrators to coordinate recruitment.</p>
+  <div class="hero-actions">
+    <a class="primary-link" href="/login">Student sign in</a>
+    <a class="secondary-link" href="/register">Create student account</a>
+  </div>
+</section>
+<div class="portal-grid">
+  <article class="portal-card"><div class="portal-icon">S</div><h3>Student Portal</h3><p>View eligible drives, apply for opportunities, upload a resume and track application status.</p><a href="/login">Open student portal →</a><p class="small-link"><a href="/register">New student? Register</a></p></article>
+  <article class="portal-card"><div class="portal-icon">C</div><h3>Company Portal</h3><p>Post placement drives and review applicants, including available resume matching details.</p><a href="/company/login">Company sign in →</a><p class="small-link"><a href="/company/register">Register a company</a></p></article>
+  <article class="portal-card"><div class="portal-icon">A</div><h3>Admin Portal</h3><p>Review placement drives, manage applicant decisions and view placement summaries.</p><a href="/admin/login">Administrator sign in →</a></article>
+</div></section>
+  </main>
+</body>
+</html>

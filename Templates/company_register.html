@@ -1,10 +1,136 @@
-<h2>Company Register</h2>
-<p>{{ msg }}</p>
-<form method="post">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input name="name" placeholder="Company name" required><br><br>
-  <input name="email" type="email" placeholder="Email" required><br><br>
-  <input name="password" type="password" placeholder="Password" required><br><br>
-  <button>Register</button>
-</form>
-<p><a href="/company/login">Already registered? Login</a></p>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Registration | CPMS</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+<main class="login-container">
+
+    <!-- Left Welcome Panel -->
+    <section class="welcome-panel">
+        <div class="brand">
+            <span class="brand-icon">C</span>
+            <span>CPMS</span>
+        </div>
+
+        <div class="welcome-content">
+            <span class="eyebrow">EMPLOYER REGISTRATION</span>
+
+            <h1>Build your team.<br>Shape the future.</h1>
+
+            <p>
+                Join the College Placement Management System to
+                connect with talented students and manage your
+                campus recruitment opportunities.
+            </p>
+
+            <div class="feature">
+                <span class="feature-icon">↗</span>
+                <div>
+                    <strong>Reach student talent</strong>
+                    <small>Connect with potential candidates.</small>
+                </div>
+            </div>
+
+            <div class="feature">
+                <span class="feature-icon">✓</span>
+                <div>
+                    <strong>Simplify recruitment</strong>
+                    <small>Manage your placement activities.</small>
+                </div>
+            </div>
+        </div>
+
+        <p class="panel-footer">
+            Great careers begin with great opportunities.
+        </p>
+    </section>
+
+    <!-- Right Registration Form -->
+    <section class="form-panel">
+
+        <div class="mobile-brand">
+            <span class="brand-icon">C</span>
+            <span>CPMS</span>
+        </div>
+
+        <div class="form-content">
+            <div class="form-heading">
+                <span class="eyebrow">GET STARTED</span>
+                <h2>Register your company</h2>
+                <p>Create your employer account to get started.</p>
+            </div>
+
+            {% if msg %}
+                <div class="message" role="alert">
+                    {{ msg }}
+                </div>
+            {% endif %}
+
+            <form method="post">
+                <input type="hidden" name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="company_name">Company name</label>
+                    <input
+                        id="company_name"
+                        name="company_name"
+                        type="text"
+                        placeholder="Enter company name"
+                        autocomplete="organization"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="email">Company email address</label>
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="name@company.com"
+                        autocomplete="email"
+                        required>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">Create password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        placeholder="Create a password"
+                        autocomplete="new-password"
+                        required>
+                </div>
+
+                <button class="login-button" type="submit">
+                    Create company account <span>→</span>
+                </button>
+            </form>
+
+            <div class="register-prompt">
+                Already registered?
+                <a href="/company/login">Sign in to your account</a>
+
+                <a href="/" style="margin-top:14px">
+                    ← Back to home
+                </a>
+            </div>
+        </div>
+
+        <div class="form-footer">
+            College Placement Management System
+        </div>
+    </section>
+
+</main>
+</body>
+</html>

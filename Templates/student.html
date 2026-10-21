@@ -1,88 +1,379 @@
-<h2>Welcome, {{ me.name }}</h2>
-<h3>Notifications {% if unread %}({{ unread }} new){% endif %}</h3>
-{% if notes %}
-  <ul>
-    {% for n in notes %}
-      <li>
-        {% if not n.is_read %}<b>{% endif %}
-        {{ n.message }} <small>({{ n.created_at.strftime('%d %b %Y, %H:%M') }})</small>
-        {% if not n.is_read %}</b>{% endif %}
-      </li>
-    {% endfor %}
-  </ul>
-  {% if unread %}
-  <form method="post" action="/student/notifications/read">
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button>Mark all as read</button>
-  </form>
-  {% endif %}
-{% else %}
-  <p>No notifications yet.</p>
-{% endif %}
-<p>Department: {{ me.department }} | CGPA: {{ me.cgpa }}</p>
-<a href="/logout">Logout</a>
 
-{% for m in get_flashed_messages() %}
-  <p style="color: blue;"><b>{{ m }}</b></p>
-{% endfor %}
-<h3>Eligible Drives</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Company</th><th>Role</th><th>Package (LPA)</th><th>Min CGPA</th><th>Drive Date</th><th>Deadline</th><th>Match</th><th></th></tr>
-  {% for d in drives %}
-  <tr>
-    <td>{{ d.company }}</td><td>{{ d.job_role }}</td><td>{{ d.package_lpa }}</td>
-    <td>{{ d.min_cgpa }}</td><td>{{ d.drive_date }}</td><td>{{ d.deadline }}</td>
-    <td>
-      {% if not me.resume_text %}
-        Upload your resume to see match
-      {% elif d.match.has_skills %}
-        <b>{{ d.match.skill_match }}%</b> skill match<br>
-        <small>
-          Matched: {{ d.match.matched|join(', ') or '-' }}<br>
-          Missing: {{ d.match.missing|join(', ') or '-' }}<br>
-          Text similarity: {{ d.match.similarity }}%
-        </small>
-      {% else %}
-        -
-      {% endif %}
-    </td>
-    <td>
-      {% if d.applied %}Applied
-      {% elif d.deadline < today %}Closed
-      {% else %}
-        <form method="post" action="/student/apply/{{ d.drive_id }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-<button>Apply</button></form>
-      {% endif %}
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="8">No eligible drives.</td></tr>
-  {% endfor %}
-</table>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<h3>My Applications</h3>
-<table border="1" cellpadding="6">
-  <tr><th>Company</th><th>Role</th><th>Applied On</th><th>Status</th><th>Final Result</th></tr>
-  {% for a in apps %}
-  <tr>
-    <td>{{ a.company }}</td><td>{{ a.job_role }}</td><td>{{ a.applied_on }}</td>
-    <td><b>{{ a.status }}</b></td>
-    <td>
-      {% if a.outcome == 'selected' %}<b>Selected ({{ a.offered_package }} LPA)</b>
-      {% elif a.outcome == 'not_selected' %}Not selected
-      {% else %}-{% endif %}
-    </td>
-  </tr>
-  {% else %}
-  <tr><td colspan="5">No applications yet.</td></tr>
-  {% endfor %}
-</table>
-<h3>My Resume</h3>
-{% if me.resume_file %}
-  <p><a href="/student/resume/view" target="_blank">View my resume</a></p>
-{% endif %}
-<form method="post" action="/student/resume" enctype="multipart/form-data">
-  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <input type="file" name="resume" accept="application/pdf" required>
-  <button type="submit">Upload</button>
-</form>
+    <title>Student Dashboard | CPMS</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+
+<div class="student-dashboard">
+
+    <!-- Top Navigation -->
+    <header class="sd-topbar">
+
+        <div class="sd-brand">
+            <div class="sd-brand-icon">C</div>
+            <div>
+                CPMS
+                <div style="font-size:11px;font-weight:500;color:#738099">
+                    College Placement Portal
+                </div>
+            </div>
+        </div>
+
+        <div class="sd-user">
+            <div class="sd-avatar">
+                {{ me.name[0]|upper if me.name else 'S' }}
+            </div>
+
+            <div>
+                <strong>{{ me.name }}</strong>
+                <div style="font-size:12px;color:#738099">
+                    Student Account
+                </div>
+            </div>
+
+            <a class="sd-logout" href="/logout">Logout</a>
+        </div>
+
+    </header>
+
+
+    <!-- Welcome Section -->
+    <section class="sd-welcome">
+
+        <div>
+            <p style="font-size:11px;font-weight:800;letter-spacing:1.5px">
+                STUDENT PORTAL
+            </p>
+
+            <h1>Welcome back, {{ me.name }}!</h1>
+
+            <p>
+                Explore placement opportunities and track your applications.
+            </p>
+        </div>
+
+        <div class="sd-profile">
+            <strong>{{ me.department }}</strong>
+            <span>Department</span>
+            <strong style="margin-top:10px">CGPA: {{ me.cgpa }}</strong>
+            <span>Academic Profile</span>
+        </div>
+
+    </section>
+
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            <div class="sd-card">
+                {% for m in messages %}
+                    <p style="margin:5px 0;color:#3157d5">
+                        <strong>{{ m }}</strong>
+                    </p>
+                {% endfor %}
+            </div>
+        {% endif %}
+    {% endwith %}
+
+
+    <!-- Notifications -->
+    <section class="sd-section">
+
+        <div class="sd-section-heading">
+            <h2>Notifications</h2>
+
+            {% if unread %}
+                <span class="sd-count">{{ unread }} new</span>
+            {% endif %}
+        </div>
+
+        <div class="sd-card">
+
+            {% if notes %}
+
+                <ul class="sd-notifications">
+                    {% for n in notes %}
+                        <li>
+                            {% if not n.is_read %}
+                                <strong>{{ n.message }}</strong>
+                            {% else %}
+                                {{ n.message }}
+                            {% endif %}
+
+                            <div style="font-size:12px;color:#738099">
+                                {{ n.created_at.strftime('%d %b %Y, %H:%M') }}
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+
+                {% if unread %}
+                    <form method="post"
+                          action="/student/notifications/read"
+                          style="margin-top:18px">
+
+                        <input type="hidden"
+                               name="csrf_token"
+                               value="{{ csrf_token() }}">
+
+                        <button type="submit">Mark all as read</button>
+                    </form>
+                {% endif %}
+
+            {% else %}
+                <p>No notifications yet.</p>
+            {% endif %}
+
+        </div>
+
+    </section>
+
+
+    <!-- Eligible Placement Drives -->
+    <section class="sd-section">
+
+        <div class="sd-section-heading">
+            <h2>Eligible Placement Drives</h2>
+            <span class="sd-count">Opportunities</span>
+        </div>
+
+        <div class="sd-table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Role</th>
+                        <th>Package (LPA)</th>
+                        <th>Min CGPA</th>
+                        <th>Drive Date</th>
+                        <th>Deadline</th>
+                        <th>Resume Match</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for d in drives %}
+                        <tr>
+                            <td><strong>{{ d.company }}</strong></td>
+                            <td>{{ d.job_role }}</td>
+                            <td>{{ d.package_lpa }}</td>
+                            <td>{{ d.min_cgpa }}</td>
+                            <td>{{ d.drive_date }}</td>
+                            <td>{{ d.deadline }}</td>
+
+                            <td>
+                                {% if not me.resume_text %}
+                                    <span style="color:#738099">
+                                        Upload resume to see match
+                                    </span>
+
+                                {% elif d.match.has_skills %}
+                                    <strong style="color:#15803d">
+                                        {{ d.match.skill_match }}% match
+                                    </strong>
+
+                                    <details style="margin-top:6px">
+                                        <summary style="cursor:pointer;color:#3157d5">
+                                            View skill details
+                                        </summary>
+
+                                        <small>
+                                            <strong>Matched:</strong>
+                                            {{ d.match.matched|join(', ') or '-' }}
+
+                                            <br>
+
+                                            <strong>Missing:</strong>
+                                            {{ d.match.missing|join(', ') or '-' }}
+
+                                            <br>
+
+                                            <strong>Text similarity:</strong>
+                                            {{ d.match.similarity }}%
+                                        </small>
+                                    </details>
+
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+
+                            <td>
+                                {% if d.applied %}
+                                    <span class="sd-count">Applied</span>
+
+                                {% elif d.deadline < today %}
+                                    <span style="color:#b91c1c;font-weight:700">
+                                        Closed
+                                    </span>
+
+                                {% else %}
+                                    <form method="post"
+                                          action="/student/apply/{{ d.drive_id }}">
+
+                                        <input type="hidden"
+                                               name="csrf_token"
+                                               value="{{ csrf_token() }}">
+
+                                        <button type="submit">Apply</button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% else %}
+                        <tr>
+                            <td colspan="8">
+                                No eligible placement drives available.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- My Applications -->
+    <section class="sd-section">
+
+        <div class="sd-section-heading">
+            <h2>My Applications</h2>
+            <span class="sd-count">Application History</span>
+        </div>
+
+        <div class="sd-table-wrap">
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>Company</th>
+                        <th>Role</th>
+                        <th>Applied On</th>
+                        <th>Status</th>
+                        <th>Final Result</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for a in apps %}
+                        <tr>
+                            <td><strong>{{ a.company }}</strong></td>
+                            <td>{{ a.job_role }}</td>
+                            <td>{{ a.applied_on }}</td>
+
+                            <td>
+                                <span class="sd-count">
+                                    {{ a.status }}
+                                </span>
+                            </td>
+
+                            <td>
+                                {% if a.outcome == 'selected' %}
+                                    <strong style="color:#15803d">
+                                        Selected
+                                        ({{ a.offered_package }} LPA)
+                                    </strong>
+
+                                {% elif a.outcome == 'not_selected' %}
+                                    <strong style="color:#b91c1c">
+                                        Not selected
+                                    </strong>
+
+                                {% else %}
+                                    <span style="color:#738099">
+                                        Pending
+                                    </span>
+                                {% endif %}
+                            </td>
+                        </tr>
+
+                    {% else %}
+                        <tr>
+                            <td colspan="5">
+                                You have not applied to any drives yet.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- Resume Section -->
+    <section class="sd-section">
+
+        <div class="sd-section-heading">
+            <h2>My Resume</h2>
+        </div>
+
+        <div class="sd-card">
+
+            <p>
+                Keep your resume updated to help assess your match with
+                available placement opportunities.
+            </p>
+
+            {% if me.resume_file %}
+                <p>
+                    <a href="/student/resume/view" target="_blank">
+                        View my current resume
+                    </a>
+                </p>
+            {% endif %}
+
+            <form method="post"
+                  action="/student/resume"
+                  enctype="multipart/form-data">
+
+                <input type="hidden"
+                       name="csrf_token"
+                       value="{{ csrf_token() }}">
+
+                <div style="margin:16px 0">
+                    <label for="resume">
+                        Select resume (PDF)
+                    </label>
+
+                    <br><br>
+
+                    <input type="file"
+                           id="resume"
+                           name="resume"
+                           accept="application/pdf"
+                           required>
+                </div>
+
+                <button type="submit">Upload Resume</button>
+
+            </form>
+
+        </div>
+
+    </section>
+
+
+    <footer class="sd-footer">
+        CPMS — College Placement Management System
+    </footer>
+
+</div>
+
+</body>
+</html>

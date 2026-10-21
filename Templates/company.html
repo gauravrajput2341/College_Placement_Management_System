@@ -1,46 +1,619 @@
-<h2>Applicants: {{ drive.job_role }}</h2>
-<p><a href="/company">&larr; Back to my drives</a></p>
 
-{% with messages = get_flashed_messages() %}
-  {% for m in messages %}<p>{{ m }}</p>{% endfor %}
-{% endwith %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Dashboard | CPMS</title>
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+</head>
 
-{% if apps %}
-<table border="1" cellpadding="6">
-  <tr>
-    <th>Name</th><th>Email</th><th>Department</th><th>CGPA</th><th>Status</th><th>Resume</th><th>Match</th>
-  </tr>
-  {% for a in apps %}
-  <tr>
-    <td>{{ a.name }}</td>
-    <td>{{ a.email }}</td>
-    <td>{{ a.department }}</td>
-    <td>{{ a.cgpa }}</td>
-    <td>{{ a.status }}</td>
-    <td>
-      {% if a.resume_file %}
-        <a href="/resume/{{ a.application_id }}" target="_blank">View resume</a>
-      {% else %}
-        Not uploaded
-      {% endif %}
-    </td>
-    <td>
-      {% if not drive.required_skills %}
-        -
-      {% elif not a.match.has_resume %}
-        No resume text
-      {% else %}
-        <b>{{ a.match.skill_match }}%</b> skill match<br>
-        <small>
-          Matched: {{ a.match.matched|join(', ') or '-' }}<br>
-          Missing: {{ a.match.missing|join(', ') or '-' }}<br>
-          Text similarity: {{ a.match.similarity }}%
-        </small>
-      {% endif %}
-    </td>
-  </tr>
-  {% endfor %}
-</table>
-{% else %}
-<p>No applicants yet.</p>
-{% endif %}
+<body class="app-page">
+
+<header class="app-topbar">
+    <a class="app-brand" href="/company">
+        <span class="app-brand-mark">C</span>
+        <span>CPMS
+            <small style="display:block;color:#8490a5;font-size:10px">
+                College Placement Portal
+            </small>
+        </span>
+    </a>
+
+    <nav class="app-nav">
+        <a href="/company">Dashboard</a>
+        <a href="/company/logout">Logout</a>
+    </nav>
+</header>
+
+<main class="app-shell">
+
+    <!-- Welcome Banner -->
+    <section class="company-hero">
+        <div>
+            <span class="app-eyebrow">COMPANY PORTAL</span>
+            <h1>Welcome back, {{ company.name }}!</h1>
+            <p>Manage placement opportunities and review student applications.</p>
+        </div>
+
+        <div class="company-hero-info">
+            <strong>{{ drives|length }} Placement Drives</strong>
+            <span>Your recruitment workspace</span>
+        </div>
+    </section>
+
+    <!-- Notifications -->
+    {% with messages = get_flashed_messages() %}
+        {% for message in messages %}
+            <div class="app-flash" role="status">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    <!-- Summary Cards -->
+    <section class="company-stats">
+        <div class="company-stat-card">
+            <span>Total Placement Drives</span>
+            <strong>{{ drives|length }}</strong>
+        </div>
+
+        <div class="company-stat-card">
+            <span>Total Applicants</span>
+            <strong>{{ drives|sum(attribute='applicants') }}</strong>
+        </div>
+
+        <div class="company-stat-card">
+            <span>Company Account</span>
+            <strong class="company-email">{{ company.email }}</strong>
+        </div>
+    </section>
+
+    <!-- Create Placement Drive -->
+    <section class="app-card company-section">
+        <div class="section-heading">
+            <div>
+                <span class="app-eyebrow">NEW OPPORTUNITY</span>
+                <h2>Create a placement drive</h2>
+                <p>Enter the job details and eligibility criteria.</p>
+            </div>
+        </div>
+
+        <form method="post" action="/company">
+            <input type="hidden" name="csrf_token"
+                   value="{{ csrf_token() }}">
+
+            <div class="app-form-grid">
+                <div class="app-field">
+                    <label for="job_role">Job Role</label>
+                    <input id="job_role" name="job_role"
+                           placeholder="e.g. Software Engineer" required>
+                </div>
+
+                <div class="app-field">
+                    <label for="package_lpa">Package (LPA)</label>
+                    <input id="package_lpa" name="package_lpa"
+                           type="number" min="0" step="0.01"
+                           placeholder="e.g. 6.5" required>
+                </div>
+
+                <div class="app-field">
+                    <label for="min_cgpa">Minimum CGPA</label>
+                    <input id="min_cgpa" name="min_cgpa"
+                           type="number" min="0" max="10" step="0.01"
+                           placeholder="e.g. 7.0" required>
+                </div>
+
+                <div class="app-field">
+                    <label for="drive_date">Drive Date</label>
+                    <input id="drive_date" name="drive_date"
+                           type="date" required>
+                </div>
+
+                <div class="app-field">
+                    <label for="deadline">Application Deadline</label>
+                    <input id="deadline" name="deadline"
+                           type="date" required>
+                </div>
+                
+<div class="form-group">
+    <label for="required_skills">Required Skills</label>
+    <textarea
+        id="required_skills"
+        name="required_skills"
+        rows="3"
+        maxlength="2000"
+        placeholder="e.g. Python, Java, SQL, HTML, CSS"
+        required
+    ></textarea>
+    <small>Enter the skills candidates should have, separated by commas.</small>
+</div>
+
+            </div>
+
+
+            <button class="app-btn company-primary-btn" type="submit">
+                + Post Placement Drive
+            </button>
+        </form>
+    </section>
+
+    <!-- Placement Drives Table -->
+    <section class="app-card company-section">
+        <div class="section-heading">
+            <div>
+                <span class="app-eyebrow">YOUR OPPORTUNITIES</span>
+                <h2>My Placement Drives</h2>
+                <p>Track drive status and applicant counts.</p>
+            </div>
+
+            <span class="app-badge">Recruitment</span>
+        </div>
+
+        <div class="app-table-wrap">
+            <table class="app-table">
+                <thead>
+                    <tr>
+                        <th>Job Role</th>
+                        <th>Package (LPA)</th>
+                        <th>Min CGPA</th>
+                        <th>Drive Date</th>
+                        <th>Deadline</th>
+                        <th>Applicants</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for d in drives %}
+                    <tr>
+                        <td><strong>{{ d.job_role }}</strong></td>
+                        <td>{{ d.package_lpa }}</td>
+                        <td>{{ d.min_cgpa }}</td>
+                        <td>{{ d.drive_date }}</td>
+                        <td>{{ d.deadline }}</td>
+                        <td>{{ d.applicants }}</td>
+                        <td>
+                            {% if d.status == 'approved' %}
+                                <span class="app-badge approved">Approved</span>
+                            {% elif d.status == 'rejected' %}
+                                <span class="app-badge pending">Rejected</span>
+                            {% else %}
+                                <span class="app-badge pending">
+                                    {{ d.status|title }}
+                                </span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="app-empty">
+                            No placement drives yet. Create your first drive above.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <footer class="app-footer">
+        CPMS · College Placement Management System
+    </footer>
+
+</main>
+
+<style>
+.company-hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 36px;
+    margin-bottom: 28px;
+    border-radius: 22px;
+    color: white;
+    background: linear-gradient(115deg, #1d347d, #3158d9, #5275ee);
+    box-shadow: 0 15px 35px rgba(49, 88, 217, .15);
+}
+.company-hero h1 {
+    margin: 12px 0;
+    font-size: clamp(25px, 3vw, 36px);
+}
+.company-hero p { margin: 0; line-height: 1.7; }
+.company-hero .app-eyebrow { color: #e0e8ff; }
+.company-hero-info {
+    min-width: 175px;
+    padding: 20px;
+    border: 1px solid rgba(255,255,255,.3);
+    border-radius: 16px;
+    background: rgba(255,255,255,.1);
+}
+.company-hero-info strong, .company-hero-info span {
+    display: block;
+}
+.company-hero-info span {
+    margin-top: 8px;
+    font-size: 13px;
+    color: #e0e8ff;
+}
+.company-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-bottom: 28px;
+}
+.company-stat-card {
+    padding: 24px;
+    background: white;
+    border: 1px solid #e0e7f3;
+    border-radius: 17px;
+    box-shadow: 0 6px 20px rgba(27, 49, 96, .04);
+}
+.company-stat-card span {
+    display: block;
+    color: #64748b;
+    font-size: 14px;
+}
+.company-stat-card strong {
+    display: block;
+    margin-top: 12px;
+    color: #203d91;
+    font-size: 29px;
+}
+.company-stat-card .company-email {
+    font-size: 16px;
+    overflow-wrap: anywhere;
+}
+.company-section { margin-top: 24px; }
+.section-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.section-heading h2 { margin: 8px 0; color: #15284a; }
+.section-heading p { margin: 0; color: #71809a; font-size: 14px; }
+.company-primary-btn {
+    margin-top: 22px;
+    background: #3158d9;
+    color: white;
+    border: 0;
+    border-radius: 10px;
+    padding: 13px 20px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.company-primary-btn:hover { background: #2446b8; }
+@media (max-width: 700px) {
+    .company-hero { align-items: stretch; flex-direction: column; padding: 25px; }
+    .company-stats { grid-template-columns: 1fr; }
+    .section-heading { align-items: flex-start; flex-direction: column; }
+}
+
+
+/* Company Dashboard layout fix */
+body.app-page {
+    margin: 0;
+    padding: 0;
+    max-width: none;
+    width: 100%;
+    min-height: 100vh;
+    box-sizing: border-box;
+    background: #f2f5fc;
+    color: #14294b;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.app-page *,
+.app-page *::before,
+.app-page *::after {
+    box-sizing: border-box;
+}
+
+.app-topbar {
+    width: 100%;
+    min-height: 94px;
+    padding: 18px 3%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    background: #fff;
+    border-bottom: 1px solid #e1e7f2;
+}
+
+.app-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: #14294b;
+    text-decoration: none;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.app-brand-mark,
+.brand-icon {
+    width: 48px;
+    height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    border-radius: 14px;
+    background: #3158df;
+    color: white;
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.app-nav a {
+    display: inline-block;
+    padding: 12px 18px;
+    border: 1px solid #e0e7f3;
+    border-radius: 10px;
+    color: #3158d9;
+    background: #fff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.app-nav a:hover {
+    background: #edf2ff;
+}
+
+.app-shell {
+    width: min(1320px, 94%);
+    margin: 30px auto;
+}
+
+.app-card {
+    display: block;
+    width: 100%;
+    padding: 28px;
+    background: #fff;
+    border: 1px solid #e0e7f3;
+    border-radius: 18px;
+    box-shadow: 0 8px 24px rgba(26, 48, 90, .05);
+}
+
+.app-eyebrow {
+    display: block;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+}
+
+.app-form-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 20px;
+}
+
+.app-field {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    min-width: 0;
+}
+
+.app-field label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #243755;
+}
+
+.app-field input,
+.app-field select {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    min-height: 48px;
+    padding: 12px 14px;
+    border: 1px solid #dce4f2;
+    border-radius: 10px;
+    background: #fbfcff;
+    color: #172b4d;
+    font: inherit;
+    outline: none;
+}
+
+.app-field input:focus,
+.app-field select:focus {
+    border-color: #3158d9;
+    box-shadow: 0 0 0 3px rgba(49, 88, 217, .12);
+}
+
+.app-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #e0e7f3;
+    border-radius: 12px;
+}
+
+.app-table {
+    width: 100%;
+    min-width: 850px;
+    border-collapse: collapse;
+    background: #fff;
+}
+
+.app-table th,
+.app-table td {
+    padding: 17px 16px;
+    border-bottom: 1px solid #e9eef6;
+    text-align: left;
+    vertical-align: middle;
+    white-space: nowrap;
+    font-size: 14px;
+}
+
+.app-table th {
+    background: #f5f7fc;
+    color: #405473;
+    font-weight: 700;
+}
+
+.app-table tbody tr:hover {
+    background: #f8faff;
+}
+
+.app-badge {
+    display: inline-block;
+    padding: 7px 12px;
+    border-radius: 20px;
+    background: #e8eeff;
+    color: #3158d9;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.app-badge.approved {
+    background: #e3f8ec;
+    color: #13834a;
+}
+
+.app-badge.pending {
+    background: #fff3d8;
+    color: #946200;
+}
+
+.app-empty {
+    padding: 30px !important;
+    text-align: center !important;
+    color: #75839b;
+}
+
+.app-flash {
+    margin-bottom: 20px;
+    padding: 14px 18px;
+    border: 1px solid #cbd9ff;
+    border-radius: 10px;
+    background: #edf2ff;
+    color: #2446a4;
+}
+
+.app-footer {
+    padding: 24px 0;
+    text-align: center;
+    color: #8290a7;
+    font-size: 13px;
+}
+
+@media (max-width: 700px) {
+    .app-topbar {
+        align-items: flex-start;
+        flex-direction: column;
+        padding: 18px 5%;
+    }
+
+    .app-nav {
+        width: 100%;
+    }
+
+    .app-shell {
+        width: 92%;
+        margin: 20px auto;
+    }
+
+    .app-card {
+        padding: 20px;
+    }
+
+    .app-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* FINAL FIX: Company dashboard positioning */
+body.app-page {
+    display: block !important;
+    position: static !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: 100vh !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
+}
+
+.app-page .app-topbar {
+    position: relative !important;
+    top: auto !important;
+    bottom: auto !important;
+    left: auto !important;
+    right: auto !important;
+    width: 100% !important;
+    margin: 0 !important;
+    transform: none !important;
+    z-index: 10;
+}
+
+.app-page .app-shell {
+    display: block !important;
+    position: relative !important;
+    width: 94% !important;
+    max-width: 1500px !important;
+    margin: 30px auto !important;
+    padding: 0 !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+}
+
+.app-page .company-hero,
+.app-page .company-stats,
+.app-page .company-section,
+.app-page .app-flash {
+    position: relative !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+}
+
+.app-page .company-hero {
+    width: 100% !important;
+    margin: 0 0 28px !important;
+}
+
+.app-page .company-stats {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 20px !important;
+    width: 100% !important;
+    margin: 0 0 28px !important;
+}
+
+.app-page .company-section {
+    width: 100% !important;
+    margin: 0 0 24px !important;
+}
+
+.app-page .app-table-wrap {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+@media (max-width: 700px) {
+    .app-page .company-stats {
+        grid-template-columns: 1fr !important;
+    }
+
+    .app-page .company-hero {
+        flex-direction: column;
+    }
+}
+
+</style>
+
+</body>
+</html>
